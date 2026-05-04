@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+:root { color-scheme: light; }
+
+body {
+  background: #F5F0E8;
+  color: #1F1B16;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 { font-family: 'Cormorant Garamond', Georgia, serif; }
+
+.btn-primary {
+  @apply bg-bark text-cream px-8 py-3 hover:bg-accent transition tracking-wider text-sm uppercase;
+}
+.btn-outline {
+  @apply border border-bark text-bark px-8 py-3 hover:bg-bark hover:text-cream transition tracking-wider text-sm uppercase;
+}
