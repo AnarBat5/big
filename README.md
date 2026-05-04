@@ -1,6 +1,6 @@
 # Baganuur Investment Group — Тавилгын вэбсайт
 
-Монголын тавилгын брэндэд зориулсан Next.js 14 + TypeScript + Tailwind CSS вэбсайт.
+Бүрэн functional Next.js 14 + TypeScript + Tailwind CSS вэбсайт. **localStorage**-ээр өгөгдлөө хадгалдаг.
 
 ## Эхлүүлэх
 
@@ -9,66 +9,99 @@ npm install
 npm run dev
 ```
 
-Дараа нь [http://localhost:3000](http://localhost:3000) хаягаар орно уу.
+➜ http://localhost:3000
 
-## Бүтэц
+## ✨ Functional боломжууд
+
+### Үйлчлүүлэгчийн талаас:
+- **🔍 Хайлт** — Navbar дээрх search icon (modal) + Shop хуудасны search bar
+- **🛒 Cart drawer** — хажуугаас гарах, бодит цагт шинэчлэгдэх
+- **💾 Persist cart** — refresh хийсэн ч сагс алга болохгүй
+- **📦 Stock хяналт** — үлдэгдлээс илүү захиалж болохгүй, "Дууссан" badge
+- **🖼 Олон зураг** — бүтээгдэхүүн бүрт 3-4 зурагтай gallery
+- **✅ Toast мэдэгдэл** — нэмэх/устгах/захиалга үед амьд reaction
+- **📝 Form validation** — утас, имэйл, шаардлагатай талбарууд
+- **📋 Захиалга** — амжилттай үед store-д хадгалагдана → admin дээр харагдана
+
+### Админ талаас (`/admin`, нууц үг: `admin123`):
+- **📊 Тойм** — бодит орлого, захиалга, статистик
+- **➕ Бүтээгдэхүүн нэмэх/засах/устгах** — өөрчлөлт хадгалагдана
+- **🖼 Олон зураг засах** — нэмэх/хасах
+- **📦 Захиалгын төлөв** — Хүлээгдэж буй → Хүргэгдэж буй → Дууссан → Цуцлагдсан
+- **👁 Захиалга харах** — хэрэглэгчийн мэдээлэл, бүтээгдэхүүн, нийт дүн
+- **🔄 Reset** — анхны бүтээгдэхүүн рүү буцах
+
+## 🏗 Архитектур
+
+**State management — Zustand + persist middleware:**
+
+```
+lib/store/
+├── cart.ts       # Сагс (localStorage: baganuur-cart)
+├── products.ts   # Бүтээгдэхүүн (localStorage: baganuur-products)
+├── orders.ts     # Захиалга (localStorage: baganuur-orders)
+└── toast.ts      # Toast мэдэгдэл (memory)
+```
+
+**Бүх өгөгдөл browser-ийн localStorage дээр хадгалагдана.**
+
+## 📂 Файлын бүтэц
 
 ```
 app/
-├── page.tsx              # Нүүр хуудас
-├── shop/                 # Дэлгүүр (шүүлтүүртэй)
-├── product/[id]/         # Бүтээгдэхүүний дэлгэрэнгүй
+├── page.tsx              # Нүүр
+├── shop/                 # Дэлгүүр (search + filter)
+├── product/[id]/         # Бүтээгдэхүүн (gallery)
 ├── cart/                 # Сагс
-├── checkout/             # Захиалга
+├── checkout/             # Захиалга (validation)
 ├── about/                # Бидний тухай
 ├── contact/              # Холбогдох
-└── admin/                # Админ хяналтын самбар
+├── admin/                # Админ (CRUD)
+└── not-found.tsx         # 404
 
 components/
-├── Navbar.tsx
+├── Navbar.tsx            # Cart icon, search, mobile menu
 ├── Footer.tsx
-├── ProductCard.tsx
-└── CartContext.tsx       # Сагсны state management
+├── ProductCard.tsx       # Stock badge, quick add
+├── CartDrawer.tsx        # Хажуугийн drawer
+├── SearchModal.tsx       # Modal search
+└── Toaster.tsx           # Toast notification
 
 lib/
-└── products.ts           # Бүтээгдэхүүний өгөгдөл
+├── products.ts           # Initial data
+└── store/                # Zustand stores
 ```
 
-## Гол боломжууд
+## 🧪 Туршилт
 
-- **12 бүтээгдэхүүн** — буйдан, сандал, ширээ, ор, шүүгээ
-- **Сагсны систем** — нэмэх/хасах/тоо өөрчлөх
-- **Шүүлтүүр** — ангилал, үнээр эрэмбэлэх
-- **Захиалгын форм** — хүргэлтийн мэдээлэл, төлбөрийн хэлбэр
-- **Админ самбар** — статистик, бүтээгдэхүүн засварлах, захиалга харах
-- **Адаптив дизайн** — гар утас, таблет, компьютер
-- **Монгол хэл** — UI бүхэлдээ
+1. Бүтээгдэхүүн сонгож сагсанд нэм → Cart drawer гарна
+2. Refresh хий → Сагс хэвээр үлдэнэ ✓
+3. Checkout хийж захиалга өг
+4. `/admin` (нууц үг: `admin123`) → захиалга харагдана
+5. Захиалгын төлөв өөрчил → шинэчлэгдэнэ
+6. Бүтээгдэхүүн нэмж/засаж/устга → Shop дээр шууд тусна
 
-## Админ нэвтрэх
+## 🎨 Дизайн
 
-- URL: `/admin`
-- Нууц үг: `admin123`
+- **Өнгө:** дулаан натурал (cream + walnut + accent)
+- **Фонт:** Cormorant Garamond + Inter
+- **Adaptive:** mobile, tablet, desktop
 
-## Технологи
-
-- **Next.js 14** (App Router)
-- **TypeScript**
-- **Tailwind CSS** — дулаан натурал өнгөний палитр
-- **lucide-react** — icon
-- **Cormorant Garamond + Inter** — фонт
-
-## Үйлдвэрлэлд гаргах
+## 🚀 Production
 
 ```bash
 npm run build
 npm start
 ```
 
-## Тохируулга
+## 📝 Цаашдын хөгжүүлэлт
 
-- Бүтээгдэхүүн нэмэх: `lib/products.ts` файлыг засна
-- Өнгө өөрчлөх: `tailwind.config.ts`
-- Жинхэнэ ажиллагаатай болгохын тулд: backend API, өгөгдлийн сан, төлбөрийн систем (QPay, Pocket гэх мэт) холбоно.
+- Backend API (Next.js API routes + Prisma + PostgreSQL)
+- Хэрэглэгчийн нэвтрэх (NextAuth)
+- Жинхэнэ төлбөрийн систем (QPay, Pocket)
+- Зургийн upload (Cloudinary)
+- Имэйл мэдэгдэл (Resend)
+- Аналитик (Vercel Analytics)
 
 ---
 

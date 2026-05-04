@@ -1,18 +1,20 @@
 "use client";
 import { useState } from "react";
 import { Phone, Mail, MapPin, Clock, Send } from "lucide-react";
+import { useToast } from "@/lib/store/toast";
 
 export default function ContactPage() {
-  const [sent, setSent] = useState(false);
+  const showToast = useToast((s) => s.show);
   const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    setSent(true);
-    setTimeout(() => {
-      setSent(false);
-      setForm({ name: "", email: "", phone: "", message: "" });
-    }, 3000);
+    if (!form.name || !form.email || !form.message) {
+      showToast("Талбаруудыг бөглөнө үү", "error");
+      return;
+    }
+    showToast("Зурвас амжилттай илгээгдлээ");
+    setForm({ name: "", email: "", phone: "", message: "" });
   };
 
   const inputCls = "w-full border border-sand bg-cream px-4 py-3 focus:outline-none focus:border-bark text-bark";
@@ -58,16 +60,16 @@ export default function ContactPage() {
         <div>
           <h2 className="font-serif text-3xl text-bark mb-8">Зурвас илгээх</h2>
           <form onSubmit={submit} className="space-y-4">
-            <input required placeholder="Нэр" value={form.name}
+            <input placeholder="Нэр" value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputCls} />
-            <input type="email" required placeholder="Имэйл" value={form.email}
+            <input type="email" placeholder="Имэйл" value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })} className={inputCls} />
             <input placeholder="Утас" value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })} className={inputCls} />
-            <textarea required placeholder="Зурвас" rows={6} value={form.message}
+            <textarea placeholder="Зурвас" rows={6} value={form.message}
               onChange={(e) => setForm({ ...form, message: e.target.value })} className={inputCls} />
             <button type="submit" className="btn-primary w-full flex items-center justify-center gap-2">
-              {sent ? "Илгээгдлээ ✓" : <><Send size={16} /> Илгээх</>}
+              <Send size={16} /> Илгээх
             </button>
           </form>
         </div>

@@ -34,7 +34,7 @@ export default function ProductClient() {
 
       <div className="grid md:grid-cols-2 gap-12 mb-20">
         <div className="aspect-square bg-sand overflow-hidden">
-          <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+          <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
         </div>
 
         <div>

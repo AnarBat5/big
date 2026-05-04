@@ -4,11 +4,12 @@ export type Product = {
   category: "buidan" | "sandal" | "shiree" | "or" | "shuugee";
   categoryName: string;
   price: number;
-  image: string;
+  images: string[];
   description: string;
   material: string;
   dimensions: string;
   inStock: number;
+  featured?: boolean;
 };
 
 export const categories = [
@@ -19,18 +20,24 @@ export const categories = [
   { id: "shuugee", name: "Шүүгээ" },
 ];
 
-export const products: Product[] = [
+export const initialProducts: Product[] = [
   {
     id: "1",
     name: "Хангай буйдан",
     category: "buidan",
     categoryName: "Буйдан",
     price: 2850000,
-    image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800",
+    images: [
+      "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800",
+      "https://images.unsplash.com/photo-1567016376408-0226e4d0c1ea?w=800",
+      "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=800",
+      "https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=800",
+    ],
     description: "Гурван хүний суудалтай, зөөлөн даавуун бүрээстэй буйдан. Зочны өрөөнд тохиромжтой.",
     material: "Натурал даавуу, царс мод",
     dimensions: "210 × 90 × 85 см",
     inStock: 5,
+    featured: true,
   },
   {
     id: "2",
@@ -38,11 +45,16 @@ export const products: Product[] = [
     category: "buidan",
     categoryName: "Буйдан",
     price: 3450000,
-    image: "https://images.unsplash.com/photo-1540574163026-643ea20ade25?w=800",
+    images: [
+      "https://images.unsplash.com/photo-1540574163026-643ea20ade25?w=800",
+      "https://images.unsplash.com/photo-1550226891-ef816aed4a98?w=800",
+      "https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=800",
+    ],
     description: "L хэлбэрийн өнцгийн буйдан, том гэр бүлд зориулсан.",
     material: "Жинхэнэ арьс, ган суурь",
     dimensions: "280 × 180 × 80 см",
     inStock: 3,
+    featured: true,
   },
   {
     id: "3",
@@ -50,11 +62,16 @@ export const products: Product[] = [
     category: "sandal",
     categoryName: "Сандал",
     price: 680000,
-    image: "https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=800",
+    images: [
+      "https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=800",
+      "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=800",
+      "https://images.unsplash.com/photo-1581539250439-c96689b516dd?w=800",
+    ],
     description: "Эртний хээтэй, гар хийцийн модон сандал.",
     material: "Хус мод, шир бүрээс",
     dimensions: "70 × 75 × 90 см",
     inStock: 12,
+    featured: true,
   },
   {
     id: "4",
@@ -62,11 +79,16 @@ export const products: Product[] = [
     category: "sandal",
     categoryName: "Сандал",
     price: 920000,
-    image: "https://images.unsplash.com/photo-1592078615290-033ee584e267?w=800",
+    images: [
+      "https://images.unsplash.com/photo-1592078615290-033ee584e267?w=800",
+      "https://images.unsplash.com/photo-1580480055273-228ff5388ef8?w=800",
+      "https://images.unsplash.com/photo-1589384267710-7a25bc24ab28?w=800",
+    ],
     description: "Эргономик дизайнтай, өндөр тохируулагатай ажлын сандал.",
     material: "Mesh даавуу, хөнгөн цагаан",
     dimensions: "65 × 65 × 110 см",
     inStock: 8,
+    featured: true,
   },
   {
     id: "5",
@@ -74,7 +96,11 @@ export const products: Product[] = [
     category: "shiree",
     categoryName: "Ширээ",
     price: 1850000,
-    image: "https://images.unsplash.com/photo-1577140917170-285929fb55b7?w=800",
+    images: [
+      "https://images.unsplash.com/photo-1577140917170-285929fb55b7?w=800",
+      "https://images.unsplash.com/photo-1615874959474-d609969a20ed?w=800",
+      "https://images.unsplash.com/photo-1604061986761-d9d0cc41b0d1?w=800",
+    ],
     description: "6 хүний хоолны ширээ, натурал царс модоор хийсэн.",
     material: "Бүтэн царс мод",
     dimensions: "180 × 90 × 75 см",
@@ -86,7 +112,11 @@ export const products: Product[] = [
     category: "shiree",
     categoryName: "Ширээ",
     price: 750000,
-    image: "https://images.unsplash.com/photo-1532372320572-cda25653a26d?w=800",
+    images: [
+      "https://images.unsplash.com/photo-1532372320572-cda25653a26d?w=800",
+      "https://images.unsplash.com/photo-1565374395542-0ce18882c857?w=800",
+      "https://images.unsplash.com/photo-1554295405-abb8fd54f153?w=800",
+    ],
     description: "Дугуй хэлбэртэй, доод тавиуртай кофены ширээ.",
     material: "Шилмүүст мод, төмөр суурь",
     dimensions: "90 × 90 × 45 см",
@@ -98,7 +128,11 @@ export const products: Product[] = [
     category: "or",
     categoryName: "Ор",
     price: 3200000,
-    image: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=800",
+    images: [
+      "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=800",
+      "https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=800",
+      "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800",
+    ],
     description: "King size хэмжээтэй, өндөр толгойтой ор.",
     material: "Нэхмэл даавуу, хатуу мод",
     dimensions: "200 × 200 × 110 см",
@@ -110,7 +144,11 @@ export const products: Product[] = [
     category: "or",
     categoryName: "Ор",
     price: 1450000,
-    image: "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800",
+    images: [
+      "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800",
+      "https://images.unsplash.com/photo-1540574163026-643ea20ade25?w=800",
+      "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=800",
+    ],
     description: "Хүүхэд, залуучуудад зориулсан ганц хүний ор.",
     material: "Нарс мод",
     dimensions: "100 × 200 × 90 см",
@@ -122,7 +160,11 @@ export const products: Product[] = [
     category: "shuugee",
     categoryName: "Шүүгээ",
     price: 2150000,
-    image: "https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?w=800",
+    images: [
+      "https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?w=800",
+      "https://images.unsplash.com/photo-1558211583-d26f610c1eb1?w=800",
+      "https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=800",
+    ],
     description: "4 хаалгатай, толин хаалгатай хувцасны том шүүгээ.",
     material: "MDF, толь",
     dimensions: "200 × 60 × 220 см",
@@ -134,7 +176,11 @@ export const products: Product[] = [
     category: "shuugee",
     categoryName: "Шүүгээ",
     price: 980000,
-    image: "https://images.unsplash.com/photo-1588279102080-4cad6c4eb33d?w=800",
+    images: [
+      "https://images.unsplash.com/photo-1588279102080-4cad6c4eb33d?w=800",
+      "https://images.unsplash.com/photo-1594620302200-9a762244a156?w=800",
+      "https://images.unsplash.com/photo-1601628828688-632f38a5a7d0?w=800",
+    ],
     description: "Өндөр, нээлттэй тавиуртай номын шүүгээ.",
     material: "Хатуу мод",
     dimensions: "120 × 35 × 200 см",
@@ -146,7 +192,11 @@ export const products: Product[] = [
     category: "shiree",
     categoryName: "Ширээ",
     price: 2750000,
-    image: "https://images.unsplash.com/photo-1593062096033-9a26b09da705?w=800",
+    images: [
+      "https://images.unsplash.com/photo-1593062096033-9a26b09da705?w=800",
+      "https://images.unsplash.com/photo-1542435503-956c469947f6?w=800",
+      "https://images.unsplash.com/photo-1517705008128-361805f42e86?w=800",
+    ],
     description: "Удирдлагын өрөөнд зориулсан том ажлын ширээ.",
     material: "Бүтэн царс, арьсан тавцан",
     dimensions: "200 × 100 × 78 см",
@@ -158,7 +208,11 @@ export const products: Product[] = [
     category: "sandal",
     categoryName: "Сандал",
     price: 1250000,
-    image: "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=800",
+    images: [
+      "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=800",
+      "https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=800",
+      "https://images.unsplash.com/photo-1581539250439-c96689b516dd?w=800",
+    ],
     description: "Унтаж амрах боломжтой, өргөн хийцтэй зөөлөн сандал.",
     material: "Велюр даавуу",
     dimensions: "85 × 90 × 95 см",
@@ -169,4 +223,10 @@ export const products: Product[] = [
 export const formatPrice = (price: number) =>
   new Intl.NumberFormat("mn-MN").format(price) + "₮";
 
-export const getProduct = (id: string) => products.find((p) => p.id === id);
+/** Alias so existing imports still work */
+export const products = initialProducts;
+
+/** Find a product by id (fallback for static data) */
+export function getProduct(id: string): Product | undefined {
+  return initialProducts.find((p) => p.id === id);
+}

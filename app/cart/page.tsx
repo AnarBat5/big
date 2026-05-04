@@ -1,11 +1,12 @@
 "use client";
 import Link from "next/link";
 import { Minus, Plus, X, ShoppingBag } from "lucide-react";
-import { useCart } from "@/components/CartContext";
+import { useCart, cartTotal } from "@/lib/store/cart";
 import { formatPrice } from "@/lib/products";
 
 export default function CartPage() {
-  const { items, remove, updateQty, total } = useCart();
+  const { items, remove, updateQty } = useCart();
+  const total = cartTotal(items);
 
   if (items.length === 0) {
     return (
@@ -29,7 +30,7 @@ export default function CartPage() {
           {items.map(({ product, qty }) => (
             <div key={product.id} className="flex gap-6 pb-6 border-b border-sand">
               <Link href={`/product/${product.id}`} className="w-32 h-32 bg-sand flex-shrink-0">
-                <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
               </Link>
               <div className="flex-1">
                 <p className="text-xs text-muted uppercase tracking-wider mb-1">{product.categoryName}</p>
@@ -43,7 +44,11 @@ export default function CartPage() {
                       <Minus size={12} />
                     </button>
                     <span className="px-4 text-sm">{qty}</span>
-                    <button onClick={() => updateQty(product.id, qty + 1)} className="p-2 hover:bg-sand">
+                    <button
+                      onClick={() => updateQty(product.id, qty + 1)}
+                      disabled={qty >= product.inStock}
+                      className="p-2 hover:bg-sand disabled:opacity-30"
+                    >
                       <Plus size={12} />
                     </button>
                   </div>
