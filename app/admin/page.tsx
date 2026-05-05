@@ -76,22 +76,30 @@ export default function AdminPage() {
   };
 
   const handleSave = async (p: Product) => {
-    if (editing) {
-      await updateProduct(p.id, p);
-      showToast("Бүтээгдэхүүн шинэчлэгдлээ");
-    } else {
-      const { id, ...rest } = p;
-      await addProduct(rest);
-      showToast("Шинэ бүтээгдэхүүн нэмэгдлээ");
+    try {
+      if (editing) {
+        await updateProduct(p.id, p);
+        showToast("Бүтээгдэхүүн шинэчлэгдлээ");
+      } else {
+        const { id, ...rest } = p;
+        await addProduct(rest);
+        showToast("Шинэ бүтээгдэхүүн нэмэгдлээ");
+      }
+      setShowForm(false);
+      setEditing(null);
+    } catch (e: unknown) {
+      showToast(e instanceof Error ? e.message : "Хадгалахад алдаа гарлаа", "error");
     }
-    setShowForm(false);
-    setEditing(null);
   };
 
   const handleDeleteProduct = async (id: string, name: string) => {
     if (!confirm(`"${name}"-г устгах уу?`)) return;
-    await removeProduct(id);
-    showToast("Бүтээгдэхүүн устгагдлаа");
+    try {
+      await removeProduct(id);
+      showToast("Бүтээгдэхүүн устгагдлаа");
+    } catch (e: unknown) {
+      showToast(e instanceof Error ? e.message : "Устгахад алдаа гарлаа", "error");
+    }
   };
 
   const handleOrderStatus = async (id: string, status: string) => {

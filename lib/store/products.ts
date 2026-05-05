@@ -20,21 +20,19 @@ export const useProducts = create<ProductState>()((set, get) => ({
   fetched: false,
 
   fetchProducts: async () => {
-    if (get().fetched) return;
     set({ loading: true });
     try {
       const res = await fetch("/api/products");
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
-          set({ products: data, fetched: true });
+          set({ products: data, fetched: true, loading: false });
           return;
         }
       }
     } catch {}
     // Fallback to static data
-    set({ products: initialProducts, fetched: true });
-    set({ loading: false });
+    set({ products: initialProducts, fetched: true, loading: false });
   },
 
   add: async (p) => {
@@ -57,23 +55,31 @@ export const useProducts = create<ProductState>()((set, get) => ({
   },
 
   update: async (id, patch) => {
-    try {
-      await fetch(`/api/products/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(patch),
-      });
-    } catch {}
+    const res = await fetch(`/api/products/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch),
+      credentials: "include",
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `PATCH failed: ${res.status}`);
+    }
+    const updated = await res.json();
     set((state) => ({
-      products: state.products.map((p) => (p.id === id ? { ...p, ...patch } : p)),
+      products: state.products.map((p) => (p.id === id ? { ...p, ...updated } : p)),
     }));
   },
 
   remove: async (id) => {
-    try {
-      await fetch(`/api/products/${id}`, { method: "DELETE" });
-    } catch {}
-    set((state) => ({ products: state.products.filter((p) => p.id !== id) }));
+    const res = await fetch(`/api/products/${id}`, { method: "DELETE", credentials: "include" });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `DELETE failed: ${res.status}`);
+    }
+    // Re-fetch from Supabase to stay in sync
+    set({ fetched: false });
+    await get().fetchProducts();
   },
 
   reset: async () => {

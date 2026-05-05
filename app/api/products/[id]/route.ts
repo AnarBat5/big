@@ -28,11 +28,11 @@ export async function PATCH(
     .from('products')
     .update(updates)
     .eq('id', params.id)
-    .select()
-    .single();
+    .select();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data);
+  if (!data || data.length === 0) return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+  return NextResponse.json(data[0]);
 }
 
 export async function DELETE(
