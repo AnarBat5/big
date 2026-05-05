@@ -63,3 +63,26 @@ CREATE POLICY "Admin manage orders" ON orders
 -- Index for fast order lookup
 CREATE INDEX IF NOT EXISTS orders_created_at_idx ON orders (created_at DESC);
 CREATE INDEX IF NOT EXISTS products_category_idx ON products (category);
+
+-- Contact messages table
+CREATE TABLE IF NOT EXISTS messages (
+  id          BIGSERIAL PRIMARY KEY,
+  name        TEXT NOT NULL,
+  email       TEXT NOT NULL,
+  phone       TEXT DEFAULT '',
+  message     TEXT NOT NULL,
+  read        BOOLEAN DEFAULT false,
+  created_at  TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
+
+-- Anyone can submit a contact message
+CREATE POLICY "Anyone create message" ON messages
+  FOR INSERT TO anon, authenticated WITH CHECK (true);
+
+-- Only authenticated admin can read / manage messages
+CREATE POLICY "Admin manage messages" ON messages
+  FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+CREATE INDEX IF NOT EXISTS messages_created_at_idx ON messages (created_at DESC);

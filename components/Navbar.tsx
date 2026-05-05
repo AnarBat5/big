@@ -14,6 +14,7 @@ export default function Navbar() {
 
   const links = [
     { href: "/", label: "Нүүр" },
+    { href: "/shop", label: "Дэлгүүр" },
     { href: "/about", label: "Бидний тухай" },
     { href: "/contact", label: "Холбогдох" },
   ];

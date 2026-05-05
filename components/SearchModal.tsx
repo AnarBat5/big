@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Search, X } from "lucide-react";
 import { useProducts } from "@/lib/store/products";
 import { formatPrice } from "@/lib/products";
+import { PLACEHOLDER_IMAGE } from "@/lib/config";
 
 export default function SearchModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [query, setQuery] = useState("");
@@ -31,9 +32,9 @@ export default function SearchModal({ open, onClose }: { open: boolean; onClose:
     : [];
 
   return (
-    <div className="fixed inset-0 z-[60] bg-charcoal/70 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-[60] bg-charcoal/70 backdrop-blur-sm px-4" onClick={onClose}>
       <div
-        className="bg-cream max-w-2xl mx-auto mt-20 mx-4 max-h-[80vh] overflow-hidden flex flex-col"
+        className="bg-cream max-w-2xl mx-auto mt-20 max-h-[80vh] overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-3 border-b border-sand p-4">
@@ -61,7 +62,7 @@ export default function SearchModal({ open, onClose }: { open: boolean; onClose:
               className="flex gap-4 p-4 hover:bg-sand/40 transition border-b border-sand/50"
             >
               <div className="w-16 h-16 bg-sand flex-shrink-0">
-                <img src={p.images[0]} alt="" className="w-full h-full object-cover" />
+                <img src={p.images[0] || PLACEHOLDER_IMAGE} alt="" className="w-full h-full object-cover" />
               </div>
               <div className="flex-1">
                 <p className="text-xs text-muted uppercase tracking-wider">{p.categoryName}</p>

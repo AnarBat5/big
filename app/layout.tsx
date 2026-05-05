@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CartDrawer from "@/components/CartDrawer";
 import Toaster from "@/components/Toaster";
+import ProductsInit from "@/components/ProductsInit";
 
 export const metadata: Metadata = {
   title: {
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="mn">
       <body>
+        <ProductsInit />
         <Navbar />
         <main className="min-h-screen">{children}</main>
         <Footer />

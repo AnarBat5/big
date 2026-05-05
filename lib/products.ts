@@ -24,9 +24,3 @@ export const initialProducts: Product[] = [];
 
 export const formatPrice = (price: number) =>
   new Intl.NumberFormat("mn-MN").format(price) + "₮";
-
-export const products = initialProducts;
-
-export function getProduct(id: string): Product | undefined {
-  return initialProducts.find((p) => p.id === id);
-}

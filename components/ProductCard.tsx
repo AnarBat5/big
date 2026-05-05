@@ -4,6 +4,7 @@ import { ShoppingBag } from "lucide-react";
 import { Product, formatPrice } from "@/lib/products";
 import { useCart } from "@/lib/store/cart";
 import { useToast } from "@/lib/store/toast";
+import { PLACEHOLDER_IMAGE } from "@/lib/config";
 
 export default function ProductCard({ product }: { product: Product }) {
   const add = useCart((s) => s.add);
@@ -24,7 +25,7 @@ export default function ProductCard({ product }: { product: Product }) {
     <Link href={`/product/${product.id}`} className="group block">
       <div className="aspect-[4/5] bg-sand overflow-hidden mb-4 relative">
         <img
-          src={product.images[0]}
+          src={product.images[0] || PLACEHOLDER_IMAGE}
           alt={product.name}
           className="w-full h-full object-cover group-hover:scale-105 transition duration-700"
         />

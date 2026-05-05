@@ -4,14 +4,15 @@ import Link from "next/link";
 import { Check, QrCode, Clock, RefreshCw } from "lucide-react";
 import { useCart, cartTotal } from "@/lib/store/cart";
 import { formatPrice } from "@/lib/products";
+import { calculateShipping, FREE_SHIPPING_THRESHOLD } from "@/lib/shipping";
+import { QPAY_ENABLED } from "@/lib/config";
 
-// ── Types ─────────────────────────────────────────────────────────────────
 type Phase = "form" | "qpay" | "success";
 
 export default function CheckoutPage() {
   const { items, clear } = useCart();
   const total = cartTotal(items);
-  const shipping = total > 5000000 ? 0 : 50000;
+  const shipping = calculateShipping(total);
 
   const [phase, setPhase]       = useState<Phase>("form");
   const [orderId, setOrderId]   = useState<string | null>(null);
@@ -22,7 +23,8 @@ export default function CheckoutPage() {
   const pollRef = useRef<NodeJS.Timeout | null>(null);
 
   const [form, setForm] = useState({
-    name: "", phone: "", email: "", address: "", district: "", note: "", payment: "qpay",
+    name: "", phone: "", email: "", address: "", district: "", note: "",
+    payment: QPAY_ENABLED ? "qpay" : "cod",
   });
 
   const inputCls = "w-full border bg-cream px-4 py-3 focus:outline-none focus:border-bark text-bark";
@@ -283,7 +285,9 @@ export default function CheckoutPage() {
             <h2 className="font-serif text-2xl text-bark mb-6">Төлбөрийн хэлбэр</h2>
             <div className="space-y-3">
               {[
-                { id: "qpay", label: "QPay (Монгол банкны апп)", desc: "Ухаалаг утасны QR кодоор" },
+                ...(QPAY_ENABLED
+                  ? [{ id: "qpay", label: "QPay (Монгол банкны апп)", desc: "Ухаалаг утасны QR кодоор" }]
+                  : []),
                 { id: "bank", label: "Банкны шилжүүлэг", desc: "Дансны мэдээллийг имэйлд илгээнэ" },
                 { id: "cod",  label: "Хүргэгдэх үед төлөх", desc: "Бэлэн мөнгөөр" },
               ].map((opt) => (
@@ -316,7 +320,7 @@ export default function CheckoutPage() {
             {items.map(({ product, qty }) => (
               <div key={product.id} className="flex gap-3 text-sm">
                 <div className="w-12 h-12 bg-sand flex-shrink-0">
-                  <img src={product.images[0]} alt="" className="w-full h-full object-cover" />
+                  <img src={product.images[0] || "data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1 1%22%3E%3C/svg%3E"} alt="" className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-1">
                   <p className="text-bark">{product.name}</p>
@@ -331,7 +335,7 @@ export default function CheckoutPage() {
               <span className="text-muted">Хүргэлт</span>
               <span>{shipping === 0 ? <span className="text-accent">Үнэгүй</span> : formatPrice(shipping)}</span>
             </div>
-            {total < 5000000 && (
+            {total < FREE_SHIPPING_THRESHOLD && (
               <p className="text-xs text-muted">5,000,000₮-ас дээш захиалгад хүргэлт үнэгүй</p>
             )}
             <div className="flex justify-between font-medium text-lg pt-2 border-t border-sand">

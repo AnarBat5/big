@@ -32,7 +32,12 @@ export async function POST(request: Request) {
   let qpayQrText: string | null = null;
   let qpayUrls: unknown[] = [];
 
-  if (body.payment === 'qpay' && process.env.QPAY_USERNAME) {
+  if (
+    body.payment === 'qpay' &&
+    process.env.QPAY_USERNAME &&
+    process.env.QPAY_PASSWORD &&
+    process.env.QPAY_INVOICE_CODE
+  ) {
     try {
       const token = await getQPayToken();
       const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';

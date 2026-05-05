@@ -6,11 +6,12 @@ function formatMNT(amount: number) {
 }
 
 export async function POST(request: Request) {
-  if (!process.env.RESEND_API_KEY) {
+  if (!process.env.RESEND_API_KEY || !process.env.ADMIN_EMAIL) {
     return NextResponse.json({ skipped: true });
   }
 
   const resend = new Resend(process.env.RESEND_API_KEY);
+  const adminEmail = process.env.ADMIN_EMAIL;
 
   const { order, type } = await request.json();
 
@@ -34,7 +35,7 @@ export async function POST(request: Request) {
       // Admin notification
       resend.emails.send({
         from: 'BIG Дэлгүүр <no-reply@baganuurig.mn>',
-        to: [process.env.ADMIN_EMAIL!],
+        to: [adminEmail],
         subject: `🛍 Шинэ захиалга #${order.id}`,
         html: `<div style="${baseStyle}">
           <h2 style="color:#7c5c3a">Шинэ захиалга ирлээ</h2>

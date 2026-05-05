@@ -6,15 +6,32 @@ import { useToast } from "@/lib/store/toast";
 export default function ContactPage() {
   const showToast = useToast((s) => s.show);
   const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
+  const [loading, setLoading] = useState(false);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.email || !form.message) {
       showToast("Талбаруудыг бөглөнө үү", "error");
       return;
     }
-    showToast("Зурвас амжилттай илгээгдлээ");
-    setForm({ name: "", email: "", phone: "", message: "" });
+    setLoading(true);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Алдаа гарлаа");
+      }
+      showToast("Зурвас амжилттай илгээгдлээ");
+      setForm({ name: "", email: "", phone: "", message: "" });
+    } catch (err: unknown) {
+      showToast(err instanceof Error ? err.message : "Илгээж чадсангүй", "error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const inputCls = "w-full border border-sand bg-cream px-4 py-3 focus:outline-none focus:border-bark text-bark";
@@ -68,8 +85,8 @@ export default function ContactPage() {
               onChange={(e) => setForm({ ...form, phone: e.target.value })} className={inputCls} />
             <textarea placeholder="Зурвас" rows={6} value={form.message}
               onChange={(e) => setForm({ ...form, message: e.target.value })} className={inputCls} />
-            <button type="submit" className="btn-primary w-full flex items-center justify-center gap-2">
-              <Send size={16} /> Илгээх
+            <button type="submit" disabled={loading} className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-60">
+              <Send size={16} /> {loading ? "Илгээж байна..." : "Илгээх"}
             </button>
           </form>
         </div>

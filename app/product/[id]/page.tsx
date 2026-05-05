@@ -6,6 +6,7 @@ import { formatPrice } from "@/lib/products";
 import { useProducts } from "@/lib/store/products";
 import { useCart } from "@/lib/store/cart";
 import { useToast } from "@/lib/store/toast";
+import { PLACEHOLDER_IMAGE } from "@/lib/config";
 import ProductCard from "@/components/ProductCard";
 
 export default function ProductPage() {
@@ -43,7 +44,7 @@ export default function ProductPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
-      <button onClick={() => router.back()} className="text-sm text-muted hover:text-bark mb-8">
+      <button onClick={() => router.push("/shop")} className="text-sm text-muted hover:text-bark mb-8">
         ← Буцах
       </button>
 
@@ -51,7 +52,7 @@ export default function ProductPage() {
         <div>
           <div className="aspect-square bg-sand overflow-hidden mb-4">
             <img
-              src={product.images[activeImg]}
+              src={product.images[activeImg] || PLACEHOLDER_IMAGE}
               alt={product.name}
               className="w-full h-full object-cover"
             />

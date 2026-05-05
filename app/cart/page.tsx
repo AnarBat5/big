@@ -3,6 +3,8 @@ import Link from "next/link";
 import { Minus, Plus, X, ShoppingBag } from "lucide-react";
 import { useCart, cartTotal } from "@/lib/store/cart";
 import { formatPrice } from "@/lib/products";
+import { calculateShipping } from "@/lib/shipping";
+import { PLACEHOLDER_IMAGE } from "@/lib/config";
 
 export default function CartPage() {
   const { items, remove, updateQty } = useCart();
@@ -19,7 +21,7 @@ export default function CartPage() {
     );
   }
 
-  const shipping = total > 5000000 ? 0 : 50000;
+  const shipping = calculateShipping(total);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-16">
@@ -30,7 +32,7 @@ export default function CartPage() {
           {items.map(({ product, qty }) => (
             <div key={product.id} className="flex gap-6 pb-6 border-b border-sand">
               <Link href={`/product/${product.id}`} className="w-32 h-32 bg-sand flex-shrink-0">
-                <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
+                <img src={product.images[0] || PLACEHOLDER_IMAGE} alt={product.name} className="w-full h-full object-cover" />
               </Link>
               <div className="flex-1">
                 <p className="text-xs text-muted uppercase tracking-wider mb-1">{product.categoryName}</p>
@@ -82,7 +84,7 @@ export default function CartPage() {
             Захиалга өгөх
           </Link>
           <Link href="/shop" className="block text-center text-sm text-muted mt-4 hover:text-bark">
-            Дэлгүүрлэлт үргэлжлүүлэх
+            Дэлгүүрээр үргэлжлүүлэх
           </Link>
         </div>
       </div>

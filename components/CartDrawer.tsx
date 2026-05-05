@@ -3,12 +3,14 @@ import Link from "next/link";
 import { X, Plus, Minus, ShoppingBag, Trash2 } from "lucide-react";
 import { useCart, cartTotal, cartCount } from "@/lib/store/cart";
 import { formatPrice } from "@/lib/products";
+import { calculateShipping } from "@/lib/shipping";
+import { PLACEHOLDER_IMAGE } from "@/lib/config";
 
 export default function CartDrawer() {
   const { items, isOpen, closeDrawer, updateQty, remove } = useCart();
   const total = cartTotal(items);
   const count = cartCount(items);
-  const shipping = total > 5000000 ? 0 : 50000;
+  const shipping = calculateShipping(total);
 
   return (
     <>
@@ -44,7 +46,7 @@ export default function CartDrawer() {
                     onClick={closeDrawer}
                     className="w-20 h-20 bg-sand flex-shrink-0"
                   >
-                    <img src={product.images[0]} alt="" className="w-full h-full object-cover" />
+                    <img src={product.images[0] || PLACEHOLDER_IMAGE} alt="" className="w-full h-full object-cover" />
                   </Link>
                   <div className="flex-1 min-w-0">
                     <p className="font-serif text-bark truncate">{product.name}</p>
