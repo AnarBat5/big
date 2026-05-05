@@ -91,6 +91,15 @@ export async function POST(request: Request) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  // ── Deduct stock for each ordered product ─────────────────────
+  if (Array.isArray(body.items)) {
+    for (const item of body.items as { product: { id: string }; qty: number }[]) {
+      if (!item.product?.id || !item.qty) continue;
+      // Use rpc to decrement safely (no negative stock)
+      await admin.rpc('decrement_stock', { product_id: item.product.id, amount: item.qty });
+    }
+  }
+
   // ── Send emails (fire-and-forget) ─────────────────────────────
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
   if (appUrl) {

@@ -313,8 +313,19 @@ function ProductForm({ product, onSave, onClose }: { product: Product | null; on
     id: "", name: "", category: "buidan", categoryName: "Буйдан",
     price: 0, images: [""], description: "", material: "", dimensions: "", inStock: 1,
   });
+  const [uploading, setUploading] = useState(false);
   const cls = "w-full border border-sand bg-cream px-3 py-2 focus:outline-none focus:border-bark text-bark text-sm";
   const updateImg = (i: number, v: string) => { const imgs = [...form.images]; imgs[i] = v; setForm({ ...form, images: imgs }); };
+  const uploadImg = async (i: number, file: File) => {
+    setUploading(true);
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch("/api/upload", { method: "POST", body: fd });
+    const json = await res.json();
+    setUploading(false);
+    if (json.url) updateImg(i, json.url);
+    else alert(json.error ?? "Upload амжилтгүй");
+  };
   return (
     <div className="fixed inset-0 bg-charcoal/60 flex items-center justify-center p-6 z-50">
       <div className="bg-cream max-w-lg w-full p-8 max-h-[90vh] overflow-y-auto">
@@ -331,8 +342,13 @@ function ProductForm({ product, onSave, onClose }: { product: Product | null; on
           <div>
             <p className="text-xs text-muted mb-2">Зургийн URL-үүд</p>
             {form.images.map((img, i) => (
-              <div key={i} className="flex gap-2 mb-2">
+              <div key={i} className="flex gap-2 mb-2 items-center">
                 <input placeholder="https://..." value={img} onChange={(e) => updateImg(i, e.target.value)} className={cls} />
+                <label className="cursor-pointer px-2 py-1 border border-sand hover:bg-sand text-xs text-bark whitespace-nowrap">
+                  {uploading ? "..." : "Upload"}
+                  <input type="file" accept="image/*" className="hidden" disabled={uploading}
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadImg(i, f); e.target.value = ""; }} />
+                </label>
                 {form.images.length > 1 && <button type="button" onClick={() => setForm({ ...form, images: form.images.filter((_, idx) => idx !== i) })} className="text-accent px-2"><X size={14} /></button>}
               </div>
             ))}

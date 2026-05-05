@@ -86,3 +86,31 @@ CREATE POLICY "Admin manage messages" ON messages
   FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 CREATE INDEX IF NOT EXISTS messages_created_at_idx ON messages (created_at DESC);
+
+-- ── decrement_stock RPC ─────────────────────────────────────────
+-- Safely reduces product stock without going below 0
+CREATE OR REPLACE FUNCTION decrement_stock(product_id TEXT, amount INTEGER)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
+BEGIN
+  UPDATE products
+  SET in_stock = GREATEST(in_stock - amount, 0)
+  WHERE id = product_id;
+END;
+$$;
+
+-- ── Supabase Storage: products image bucket ────────────────────
+-- Run in SQL Editor or via Supabase dashboard Storage tab
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('products', 'products', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Allow authenticated (admin) to upload/delete
+CREATE POLICY "Admin upload product images" ON storage.objects
+  FOR INSERT TO authenticated WITH CHECK (bucket_id = 'products');
+
+CREATE POLICY "Admin delete product images" ON storage.objects
+  FOR DELETE TO authenticated USING (bucket_id = 'products');
+
+-- Public read for product images
+CREATE POLICY "Public read product images" ON storage.objects
+  FOR SELECT TO anon, authenticated USING (bucket_id = 'products');
