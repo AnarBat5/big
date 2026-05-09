@@ -16,18 +16,20 @@ export default function AdminLoginPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
-    const supabase = createClient();
-    const { error: authErr } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (authErr) {
-      setError("Нэвтрэх нэр эсвэл нууц үг буруу байна");
-      setLoading(false);
-    } else {
-      router.push("/admin");
-      router.refresh();
+    try {
+      const supabase = createClient();
+      const { error: authErr } = await supabase.auth.signInWithPassword({ email, password });
+      if (authErr) {
+        setError("Нэвтрэх нэр эсвэл нууц үг буруу байна");
+      } else {
+        router.refresh();
+        router.push("/admin");
+        return; // keep loading while navigating
+      }
+    } catch {
+      setError("Холболтын алдаа гарлаа. Дахин оролдоно уу.");
     }
+    setLoading(false);
   };
 
   return (
@@ -41,9 +43,7 @@ export default function AdminLoginPage() {
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="text-xs text-muted uppercase tracking-wider block mb-1">
-              Имэйл
-            </label>
+            <label className="text-xs text-muted uppercase tracking-wider block mb-1">Имэйл</label>
             <input
               type="email"
               value={email}
@@ -56,9 +56,7 @@ export default function AdminLoginPage() {
           </div>
 
           <div>
-            <label className="text-xs text-muted uppercase tracking-wider block mb-1">
-              Нууц үг
-            </label>
+            <label className="text-xs text-muted uppercase tracking-wider block mb-1">Нууц үг</label>
             <div className="relative">
               <input
                 type={showPwd ? "text" : "password"}
@@ -80,16 +78,10 @@ export default function AdminLoginPage() {
           </div>
 
           {error && (
-            <p className="text-red-500 text-sm bg-red-50 px-4 py-2 border border-red-200">
-              {error}
-            </p>
+            <p className="text-red-500 text-sm bg-red-50 px-4 py-2 border border-red-200">{error}</p>
           )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn-primary w-full disabled:opacity-60"
-          >
+          <button type="submit" disabled={loading} className="btn-primary w-full disabled:opacity-60">
             {loading ? "Нэвтэрч байна..." : "Нэвтрэх"}
           </button>
         </form>

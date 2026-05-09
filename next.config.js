@@ -7,6 +7,11 @@ const nextConfig = {
       { protocol: 'https', hostname: 'api.qrserver.com' },
       { protocol: 'https', hostname: '*.qpay.mn' },
     ],
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 2592000,
   },
+  poweredByHeader: false,
+  compress: true,
+  reactStrictMode: true,
 };
 module.exports = nextConfig;

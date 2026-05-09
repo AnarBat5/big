@@ -45,18 +45,22 @@ ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE orders   ENABLE ROW LEVEL SECURITY;
 
 -- Products: public can read
+DROP POLICY IF EXISTS "Public read products" ON products;
 CREATE POLICY "Public read products" ON products
   FOR SELECT TO anon, authenticated USING (true);
 
 -- Products: authenticated admin can manage
+DROP POLICY IF EXISTS "Admin manage products" ON products;
 CREATE POLICY "Admin manage products" ON products
   FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- Orders: anyone can insert (checkout)
+DROP POLICY IF EXISTS "Anyone create order" ON orders;
 CREATE POLICY "Anyone create order" ON orders
   FOR INSERT TO anon, authenticated WITH CHECK (true);
 
 -- Orders: authenticated admin can read & update
+DROP POLICY IF EXISTS "Admin manage orders" ON orders;
 CREATE POLICY "Admin manage orders" ON orders
   FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
@@ -78,10 +82,12 @@ CREATE TABLE IF NOT EXISTS messages (
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 
 -- Anyone can submit a contact message
+DROP POLICY IF EXISTS "Anyone create message" ON messages;
 CREATE POLICY "Anyone create message" ON messages
   FOR INSERT TO anon, authenticated WITH CHECK (true);
 
 -- Only authenticated admin can read / manage messages
+DROP POLICY IF EXISTS "Admin manage messages" ON messages;
 CREATE POLICY "Admin manage messages" ON messages
   FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
@@ -105,12 +111,15 @@ VALUES ('products', 'products', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- Allow authenticated (admin) to upload/delete
+DROP POLICY IF EXISTS "Admin upload product images" ON storage.objects;
 CREATE POLICY "Admin upload product images" ON storage.objects
   FOR INSERT TO authenticated WITH CHECK (bucket_id = 'products');
 
+DROP POLICY IF EXISTS "Admin delete product images" ON storage.objects;
 CREATE POLICY "Admin delete product images" ON storage.objects
   FOR DELETE TO authenticated USING (bucket_id = 'products');
 
 -- Public read for product images
+DROP POLICY IF EXISTS "Public read product images" ON storage.objects;
 CREATE POLICY "Public read product images" ON storage.objects
   FOR SELECT TO anon, authenticated USING (bucket_id = 'products');

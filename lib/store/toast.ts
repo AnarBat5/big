@@ -9,10 +9,12 @@ type ToastState = {
   dismiss: (id: number) => void;
 };
 
+let counter = 0;
+
 export const useToast = create<ToastState>((set) => ({
   toasts: [],
   show: (message, type = "success") => {
-    const id = Date.now();
+    const id = ++counter;
     set((state) => ({ toasts: [...state.toasts, { id, message, type }] }));
     setTimeout(() => {
       set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) }));

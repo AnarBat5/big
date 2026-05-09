@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
-import { Resend } from 'resend';
+import { sendContactEmail } from '@/lib/email';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -24,42 +27,13 @@ export async function POST(request: Request) {
   }
 
   const admin = createAdminClient();
-  const { error } = await admin
-    .from('messages')
-    .insert({ name, email, phone, message });
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+  const { error } = await admin.from('messages').insert({ name, email, phone, message });
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   // Fire-and-forget admin notification
-  if (process.env.RESEND_API_KEY && process.env.ADMIN_EMAIL) {
-    const resend = new Resend(process.env.RESEND_API_KEY);
-    resend.emails
-      .send({
-        from: 'BIG Холбогдох <no-reply@baganuurig.mn>',
-        to: [process.env.ADMIN_EMAIL],
-        replyTo: email,
-        subject: `Шинэ зурвас — ${name}`,
-        html: `<div style="font-family:Georgia,serif;max-width:600px;margin:0 auto;color:#3d2c1e">
-          <h2 style="color:#7c5c3a">Шинэ холбоо барих зурвас</h2>
-          <p><strong>Нэр:</strong> ${escapeHtml(name)}</p>
-          <p><strong>Имэйл:</strong> ${escapeHtml(email)}</p>
-          ${phone ? `<p><strong>Утас:</strong> ${escapeHtml(phone)}</p>` : ''}
-          <p style="margin-top:16px;white-space:pre-wrap;border-left:3px solid #7c5c3a;padding-left:12px">${escapeHtml(message)}</p>
-        </div>`,
-      })
-      .catch((err) => console.error('Contact email error:', err?.message ?? err));
-  }
+  sendContactEmail({ name, email, phone, message }).catch((err) =>
+    console.error('Contact email error:', err instanceof Error ? err.message : err)
+  );
 
   return NextResponse.json({ success: true });
-}
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
 }

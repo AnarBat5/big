@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
+import { revalidateTag, revalidatePath } from 'next/cache';
 import { createClient, createAdminClient } from '@/lib/supabase/server';
-import { initialProducts } from '@/lib/products';
+
+export const runtime = 'nodejs';
+// Cache the products listing for 60s on the edge — drastically reduces
+// Supabase round-trips while still letting admin updates appear quickly
+// (admin actions also call revalidate on this path).
+export const revalidate = 60;
 
 function toFrontend(p: Record<string, unknown>) {
   return {
@@ -25,11 +31,11 @@ export async function GET() {
       .from('products')
       .select('*')
       .order('created_at', { ascending: true });
-
     if (error) throw error;
-    return NextResponse.json(data.map(toFrontend));
-  } catch {
-    return NextResponse.json(initialProducts);
+    return NextResponse.json((data ?? []).map(toFrontend));
+  } catch (err) {
+    console.error('GET /api/products failed:', err instanceof Error ? err.message : err);
+    return NextResponse.json([]);
   }
 }
 
@@ -40,6 +46,9 @@ export async function POST(request: Request) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (user.email !== process.env.ADMIN_EMAIL) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
 
   if (!body.name || typeof body.price !== 'number' || !body.category) {
     return NextResponse.json({ error: 'name, price and category are required' }, { status: 400 });
@@ -61,5 +70,10 @@ export async function POST(request: Request) {
   }).select().single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  revalidateTag('products');
+  revalidatePath('/');
+  revalidatePath('/shop');
+
   return NextResponse.json(toFrontend(data as Record<string, unknown>), { status: 201 });
 }

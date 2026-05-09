@@ -6,6 +6,7 @@ type ProductState = {
   products: Product[];
   loading: boolean;
   fetched: boolean;
+  setSeed: (products: Product[]) => void;
   fetchProducts: () => Promise<void>;
   add: (p: Omit<Product, "id">) => Promise<void>;
   update: (id: string, p: Partial<Product>) => Promise<void>;
@@ -18,6 +19,12 @@ export const useProducts = create<ProductState>()((set, get) => ({
   products: initialProducts,
   loading: false,
   fetched: false,
+
+  setSeed: (products) => {
+    if (!get().fetched && products.length > 0) {
+      set({ products, fetched: true });
+    }
+  },
 
   fetchProducts: async () => {
     set({ loading: true });

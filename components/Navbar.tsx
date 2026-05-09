@@ -15,6 +15,7 @@ export default function Navbar() {
   const links = [
     { href: "/", label: "Нүүр" },
     { href: "/shop", label: "Дэлгүүр" },
+    { href: "/order-tracking", label: "Захиалга хайх" },
     { href: "/about", label: "Бидний тухай" },
     { href: "/contact", label: "Холбогдох" },
   ];
@@ -28,7 +29,7 @@ export default function Navbar() {
             <span className="text-[10px] tracking-[0.3em] text-muted uppercase mt-1">Investment Group</span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-10">
+          <div className="hidden md:flex items-center gap-8">
             {links.map((l) => (
               <Link
                 key={l.href}

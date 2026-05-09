@@ -1,21 +1,32 @@
 "use client";
-import { useState, useMemo, Suspense } from "react";
+import { useState, useMemo, Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
-import { categories } from "@/lib/products";
+import { categories, type Product } from "@/lib/products";
 import { useProducts } from "@/lib/store/products";
 import ProductCard from "@/components/ProductCard";
 
 type SortKey = "new" | "low" | "high";
 
-function ShopGridContent() {
+function ShopGridContent({ initialProducts }: { initialProducts?: Product[] }) {
   const params = useSearchParams();
   const initialCat = params.get("cat") || "all";
-  const products = useProducts((s) => s.products);
-  const loading = useProducts((s) => s.loading);
-  const fetched = useProducts((s) => s.fetched);
-  const [cat, setCat] = useState(initialCat);
-  const [sort, setSort] = useState<SortKey>("new");
+
+  const storeProducts = useProducts((s) => s.products);
+  const setSeed       = useProducts((s) => s.setSeed);
+  const loading       = useProducts((s) => s.loading);
+  const fetched       = useProducts((s) => s.fetched);
+
+  // Hydrate the client store from server-rendered data on first mount.
+  useEffect(() => {
+    if (initialProducts && initialProducts.length > 0) setSeed(initialProducts);
+  }, [initialProducts, setSeed]);
+
+  const products = storeProducts.length > 0 ? storeProducts : initialProducts ?? [];
+  const isLoading = (loading || !fetched) && products.length === 0;
+
+  const [cat,   setCat]   = useState(initialCat);
+  const [sort,  setSort]  = useState<SortKey>("new");
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
@@ -29,12 +40,10 @@ function ShopGridContent() {
           p.categoryName.toLowerCase().includes(q)
       );
     }
-    if (sort === "low") list = [...list].sort((a, b) => a.price - b.price);
+    if (sort === "low")  list = [...list].sort((a, b) => a.price - b.price);
     if (sort === "high") list = [...list].sort((a, b) => b.price - a.price);
     return list;
   }, [cat, sort, query, products]);
-
-  const isLoading = loading || !fetched;
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-16">
@@ -113,10 +122,10 @@ function ShopGridContent() {
   );
 }
 
-export default function ShopGrid() {
+export default function ShopGrid({ initialProducts }: { initialProducts?: Product[] } = {}) {
   return (
     <Suspense fallback={<div className="p-20 text-center">Ачааллаж байна...</div>}>
-      <ShopGridContent />
+      <ShopGridContent initialProducts={initialProducts} />
     </Suspense>
   );
 }

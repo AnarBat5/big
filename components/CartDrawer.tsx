@@ -29,6 +29,9 @@ export default function CartDrawer() {
             <ShoppingBag size={40} className="text-muted mb-4" />
             <p className="text-muted mb-6">Сагс хоосон байна</p>
             <Link href="/shop" onClick={closeDrawer} className="btn-primary">Дэлгүүр үзэх</Link>
+            <Link href="/order-tracking" onClick={closeDrawer} className="text-xs text-muted hover:text-bark mt-4 underline">
+              Өмнөх захиалга хайх
+            </Link>
           </div>
         ) : (
           <>
