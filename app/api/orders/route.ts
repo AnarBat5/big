@@ -6,14 +6,14 @@ function generateOrderId() {
 }
 
 async function getQPayToken(): Promise<string> {
+  const user = process.env.QPAY_USERNAME;
+  const pass = process.env.QPAY_PASSWORD;
+  if (!user || !pass) throw new Error('QPay credentials not configured');
+
   const res = await fetch('https://merchant.qpay.mn/v2/auth/token', {
     method: 'POST',
     headers: {
-      Authorization:
-        'Basic ' +
-        Buffer.from(
-          `${process.env.QPAY_USERNAME}:${process.env.QPAY_PASSWORD}`
-        ).toString('base64'),
+      Authorization: 'Basic ' + Buffer.from(`${user}:${pass}`).toString('base64'),
     },
     cache: 'no-store',
   });
@@ -23,7 +23,23 @@ async function getQPayToken(): Promise<string> {
 }
 
 export async function POST(request: Request) {
-  const body = await request.json();
+  const body = await request.json().catch(() => null);
+  if (!body) return NextResponse.json({ error: 'Invalid body' }, { status: 400 });
+
+  // Validate required fields
+  if (!body.customer?.name || !body.customer?.phone || !body.customer?.email) {
+    return NextResponse.json({ error: 'Missing customer info' }, { status: 400 });
+  }
+  if (!body.address?.district || !body.address?.detail) {
+    return NextResponse.json({ error: 'Missing address' }, { status: 400 });
+  }
+  if (!Array.isArray(body.items) || body.items.length === 0) {
+    return NextResponse.json({ error: 'Order must have items' }, { status: 400 });
+  }
+  if (typeof body.total !== 'number' || body.total <= 0) {
+    return NextResponse.json({ error: 'Invalid total' }, { status: 400 });
+  }
+
   const admin = createAdminClient();
   const orderId = generateOrderId();
 
@@ -32,12 +48,12 @@ export async function POST(request: Request) {
   let qpayQrText: string | null = null;
   let qpayUrls: unknown[] = [];
 
-  if (
-    body.payment === 'qpay' &&
+  const qpayReady =
     process.env.QPAY_USERNAME &&
     process.env.QPAY_PASSWORD &&
-    process.env.QPAY_INVOICE_CODE
-  ) {
+    process.env.QPAY_INVOICE_CODE;
+
+  if (body.payment === 'qpay' && qpayReady) {
     try {
       const token = await getQPayToken();
       const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
@@ -91,13 +107,16 @@ export async function POST(request: Request) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // ── Deduct stock for each ordered product ─────────────────────
-  if (Array.isArray(body.items)) {
-    for (const item of body.items as { product: { id: string }; qty: number }[]) {
-      if (!item.product?.id || !item.qty) continue;
-      // Use rpc to decrement safely (no negative stock)
-      await admin.rpc('decrement_stock', { product_id: item.product.id, amount: item.qty });
-    }
+  // ── Decrement stock ───────────────────────────────────────────
+  for (const item of body.items) {
+    if (!item?.product?.id) continue;
+    const qty = Number(item.qty);
+    if (!Number.isInteger(qty) || qty <= 0) continue;
+    const { error: rpcErr } = await admin.rpc('decrement_stock', {
+      product_id: item.product.id,
+      amount: qty,
+    });
+    if (rpcErr) console.error(`Stock decrement failed for ${item.product.id}:`, rpcErr.message);
   }
 
   // ── Send emails (fire-and-forget) ─────────────────────────────

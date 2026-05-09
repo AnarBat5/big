@@ -1,9 +1,10 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import { Minus, Plus, X, ShoppingBag } from "lucide-react";
 import { useCart, cartTotal } from "@/lib/store/cart";
 import { formatPrice } from "@/lib/products";
-import { calculateShipping } from "@/lib/shipping";
+import { calculateShipping, FREE_SHIPPING_THRESHOLD } from "@/lib/shipping";
 import { PLACEHOLDER_IMAGE } from "@/lib/config";
 
 export default function CartPage() {
@@ -31,8 +32,8 @@ export default function CartPage() {
         <div className="lg:col-span-2 space-y-6">
           {items.map(({ product, qty }) => (
             <div key={product.id} className="flex gap-6 pb-6 border-b border-sand">
-              <Link href={`/product/${product.id}`} className="w-32 h-32 bg-sand flex-shrink-0">
-                <img src={product.images[0] || PLACEHOLDER_IMAGE} alt={product.name} className="w-full h-full object-cover" />
+              <Link href={`/product/${product.id}`} className="w-32 h-32 bg-sand flex-shrink-0 relative overflow-hidden">
+                <Image src={product.images[0] || PLACEHOLDER_IMAGE} alt={product.name} fill sizes="128px" className="object-cover" />
               </Link>
               <div className="flex-1">
                 <p className="text-xs text-muted uppercase tracking-wider mb-1">{product.categoryName}</p>
@@ -66,6 +67,22 @@ export default function CartPage() {
 
         <div className="bg-sand/40 p-8 h-fit">
           <h2 className="font-serif text-2xl text-bark mb-6">Захиалгын дүн</h2>
+          {shipping > 0 && (
+            <div className="mb-5">
+              <p className="text-xs text-muted mb-2">
+                Үнэгүй хүргэлтэнд <span className="text-bark font-medium">{formatPrice(FREE_SHIPPING_THRESHOLD - total)}</span> үлдлээ
+              </p>
+              <div className="w-full bg-sand h-1.5 rounded-full overflow-hidden">
+                <div
+                  className="bg-accent h-full rounded-full transition-all duration-500"
+                  style={{ width: `${Math.min(100, (total / FREE_SHIPPING_THRESHOLD) * 100)}%` }}
+                />
+              </div>
+            </div>
+          )}
+          {shipping === 0 && (
+            <p className="text-xs text-accent mb-4 font-medium">✓ Та үнэгүй хүргэлт авах эрхтэй!</p>
+          )}
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
               <span className="text-muted">Дэд дүн</span>
@@ -84,7 +101,7 @@ export default function CartPage() {
             Захиалга өгөх
           </Link>
           <Link href="/shop" className="block text-center text-sm text-muted mt-4 hover:text-bark">
-            Дэлгүүрээр үргэлжлүүлэх
+            Дэлгүүрээр үргэлжүүлэх
           </Link>
         </div>
       </div>

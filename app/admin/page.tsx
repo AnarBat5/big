@@ -1,8 +1,9 @@
-﻿"use client";
-import { useState, useEffect, useCallback } from "react";
+"use client";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Package, ShoppingCart, TrendingUp, Users,
   Plus, Edit2, Trash2, X, RotateCcw, LogOut, RefreshCw,
+  ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { categories, formatPrice, Product } from "@/lib/products";
 import { useProducts } from "@/lib/store/products";
@@ -29,6 +30,7 @@ type DBOrder = {
 };
 
 const STATUSES = ["Хүлээгдэж буй", "Төлбөр хийгдсэн", "Хүргэгдэж буй", "Дууссан", "Цуцлагдсан"];
+const ORDERS_PER_PAGE = 10;
 
 const statusColor = (s: string) =>
   s === "Дууссан"          ? "bg-accent/20 text-accent" :
@@ -38,21 +40,22 @@ const statusColor = (s: string) =>
                              "bg-sand text-muted";
 
 export default function AdminPage() {
-  const [tab, setTab]           = useState<"dash" | "products" | "orders">("dash");
-  const [orders, setOrders]     = useState<DBOrder[]>([]);
+  const [tab, setTab]             = useState<"dash" | "products" | "orders">("dash");
+  const [orders, setOrders]       = useState<DBOrder[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
-  const [editing, setEditing]   = useState<Product | null>(null);
-  const [showForm, setShowForm] = useState(false);
+  const [editing, setEditing]     = useState<Product | null>(null);
+  const [showForm, setShowForm]   = useState(false);
   const [viewOrder, setViewOrder] = useState<DBOrder | null>(null);
+  const [orderPage, setOrderPage] = useState(1);
 
-  const products    = useProducts((s) => s.products);
-  const fetchProds  = useProducts((s) => s.fetchProducts);
-  const addProduct  = useProducts((s) => s.add);
+  const products      = useProducts((s) => s.products);
+  const fetchProds    = useProducts((s) => s.fetchProducts);
+  const addProduct    = useProducts((s) => s.add);
   const updateProduct = useProducts((s) => s.update);
   const removeProduct = useProducts((s) => s.remove);
   const resetProducts = useProducts((s) => s.reset);
-  const showToast   = useToast((s) => s.show);
-  const router      = useRouter();
+  const showToast     = useToast((s) => s.show);
+  const router        = useRouter();
 
   useEffect(() => { fetchProds(); }, [fetchProds]);
 
@@ -127,12 +130,32 @@ export default function AdminPage() {
     .filter((o) => o.status === "Дууссан")
     .reduce((s, o) => s + o.total, 0);
 
+  const revenueByDay = useMemo(() => {
+    const days: { label: string; revenue: number }[] = [];
+    const now = new Date();
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      const label = `${d.getMonth() + 1}/${d.getDate()}`;
+      const revenue = orders
+        .filter((o) => o.created_at.slice(0, 10) === key)
+        .reduce((s, o) => s + o.total, 0);
+      days.push({ label, revenue });
+    }
+    return days;
+  }, [orders]);
+
+  const maxRevenue  = Math.max(...revenueByDay.map((d) => d.revenue), 1);
+  const totalPages  = Math.max(1, Math.ceil(orders.length / ORDERS_PER_PAGE));
+  const pagedOrders = orders.slice((orderPage - 1) * ORDERS_PER_PAGE, orderPage * ORDERS_PER_PAGE);
+
   const stats = [
-    { icon: TrendingUp, label: "Нийт орлого", value: formatPrice(totalRevenue), color: "text-accent" },
-    { icon: ShoppingCart, label: "Захиалга",   value: orders.length.toString(),  color: "text-bark" },
-    { icon: Package,     label: "Бүтээгдэхүүн", value: products.length.toString(), color: "text-bark" },
+    { icon: TrendingUp,  label: "Нийт орлого",   value: formatPrice(totalRevenue),  color: "text-accent" },
+    { icon: ShoppingCart, label: "Захиалга",      value: orders.length.toString(),   color: "text-bark" },
+    { icon: Package,     label: "Бүтээгдэхүүн",  value: products.length.toString(), color: "text-bark" },
     { icon: Users,       label: "Үйлчлүүлэгч",
-      value: new Set(orders.map((o) => o.customer_email)).size.toString(), color: "text-bark" },
+      value: new Set(orders.map((o) => o.customer_email)).size.toString(),           color: "text-bark" },
   ];
 
   return (
@@ -173,6 +196,29 @@ export default function AdminPage() {
               </div>
             ))}
           </div>
+
+          <div className="bg-cream border border-sand p-6">
+            <h2 className="font-serif text-2xl text-bark mb-6">Сүүлийн 14 хоногийн борлуулалт</h2>
+            <div className="flex items-end gap-1 h-40">
+              {revenueByDay.map(({ label, revenue }) => (
+                <div key={label} className="flex-1 flex flex-col items-center gap-1 group">
+                  <div className="relative w-full flex flex-col justify-end" style={{ height: "120px" }}>
+                    {revenue > 0 && (
+                      <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[9px] text-muted whitespace-nowrap opacity-0 group-hover:opacity-100 transition">
+                        {formatPrice(revenue)}
+                      </div>
+                    )}
+                    <div
+                      className="w-full bg-bark/80 hover:bg-accent transition-colors rounded-t-sm"
+                      style={{ height: `${(revenue / maxRevenue) * 100}%`, minHeight: revenue > 0 ? "3px" : "0" }}
+                    />
+                  </div>
+                  <span className="text-[9px] text-muted">{label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="bg-cream border border-sand p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-serif text-2xl text-bark">Сүүлийн захиалгууд</h2>
@@ -185,8 +231,10 @@ export default function AdminPage() {
             ) : (
               <table className="w-full text-sm">
                 <thead><tr className="text-left text-muted border-b border-sand">
-                  <th className="pb-3">Дугаар</th><th className="pb-3">Үйлчлүүлэгч</th>
-                  <th className="pb-3">Дүн</th><th className="pb-3">Төлөв</th>
+                  <th className="pb-3">Дугаар</th>
+                  <th className="pb-3">Үйлчлүүлэгч</th>
+                  <th className="pb-3">Дүн</th>
+                  <th className="pb-3">Төлөв</th>
                 </tr></thead>
                 <tbody>
                   {orders.slice(0, 5).map((o) => (
@@ -226,16 +274,22 @@ export default function AdminPage() {
             <table className="w-full text-sm">
               <thead className="bg-sand/30">
                 <tr className="text-left text-muted">
-                  <th className="p-4">Зураг</th><th className="p-4">Нэр</th><th className="p-4">Ангилал</th>
-                  <th className="p-4">Үнэ</th><th className="p-4">Үлдэгдэл</th><th className="p-4"></th>
+                  <th className="p-4">Зураг</th>
+                  <th className="p-4">Нэр</th>
+                  <th className="p-4">Ангилал</th>
+                  <th className="p-4">Үнэ</th>
+                  <th className="p-4">Үлдэгдэл</th>
+                  <th className="p-4"></th>
                 </tr>
               </thead>
               <tbody>
                 {products.map((p) => (
                   <tr key={p.id} className="border-t border-sand">
-                    <td className="p-4"><div className="w-12 h-12 bg-sand">
-                      {p.images[0] && <img src={p.images[0]} alt="" className="w-full h-full object-cover" />}
-                    </div></td>
+                    <td className="p-4">
+                      <div className="w-12 h-12 bg-sand">
+                        {p.images[0] && <img src={p.images[0]} alt="" className="w-full h-full object-cover" />}
+                      </div>
+                    </td>
                     <td className="p-4 text-bark">{p.name}</td>
                     <td className="p-4 text-muted">{p.categoryName}</td>
                     <td className="p-4 text-bark">{formatPrice(p.price)}</td>
@@ -244,10 +298,16 @@ export default function AdminPage() {
                         {p.inStock}
                       </span>
                     </td>
-                    <td className="p-4"><div className="flex gap-2">
-                      <button onClick={() => { setEditing(p); setShowForm(true); }} className="p-2 hover:bg-sand"><Edit2 size={14} /></button>
-                      <button onClick={() => handleDeleteProduct(p.id, p.name)} className="p-2 hover:bg-sand text-accent"><Trash2 size={14} /></button>
-                    </div></td>
+                    <td className="p-4">
+                      <div className="flex gap-2">
+                        <button onClick={() => { setEditing(p); setShowForm(true); }} className="p-2 hover:bg-sand">
+                          <Edit2 size={14} />
+                        </button>
+                        <button onClick={() => handleDeleteProduct(p.id, p.name)} className="p-2 hover:bg-sand text-accent">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -273,15 +333,22 @@ export default function AdminPage() {
               <table className="w-full text-sm">
                 <thead className="bg-sand/30">
                   <tr className="text-left text-muted">
-                    <th className="p-4">Дугаар</th><th className="p-4">Үйлчлүүлэгч</th>
-                    <th className="p-4">Огноо</th><th className="p-4">Дүн</th><th className="p-4">Төлөв</th><th className="p-4"></th>
+                    <th className="p-4">Дугаар</th>
+                    <th className="p-4">Үйлчлүүлэгч</th>
+                    <th className="p-4">Огноо</th>
+                    <th className="p-4">Дүн</th>
+                    <th className="p-4">Төлөв</th>
+                    <th className="p-4"></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.map((o) => (
+                  {pagedOrders.map((o) => (
                     <tr key={o.id} className="border-t border-sand">
                       <td className="p-4 text-bark">#{o.id}</td>
-                      <td className="p-4 text-bark"><div>{o.customer_name}</div><div className="text-xs text-muted">{o.customer_phone}</div></td>
+                      <td className="p-4 text-bark">
+                        <div>{o.customer_name}</div>
+                        <div className="text-xs text-muted">{o.customer_phone}</div>
+                      </td>
                       <td className="p-4 text-muted">{new Date(o.created_at).toLocaleDateString("mn-MN")}</td>
                       <td className="p-4 text-bark">{formatPrice(o.total)}</td>
                       <td className="p-4">
@@ -290,16 +357,54 @@ export default function AdminPage() {
                           {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
                         </select>
                       </td>
-                      <td className="p-4"><div className="flex gap-2">
-                        <button onClick={() => setViewOrder(o)} className="p-2 hover:bg-sand text-xs text-bark">Харах</button>
-                        <button onClick={() => handleDeleteOrder(o.id)} className="p-2 hover:bg-sand text-accent"><Trash2 size={14} /></button>
-                      </div></td>
+                      <td className="p-4">
+                        <div className="flex gap-2">
+                          <button onClick={() => setViewOrder(o)} className="p-2 hover:bg-sand text-xs text-bark">Харах</button>
+                          <button onClick={() => handleDeleteOrder(o.id)} className="p-2 hover:bg-sand text-accent">
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             )}
           </div>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4">
+              <p className="text-sm text-muted">
+                {(orderPage - 1) * ORDERS_PER_PAGE + 1}–{Math.min(orderPage * ORDERS_PER_PAGE, orders.length)} / {orders.length} захиалга
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setOrderPage((p) => Math.max(1, p - 1))}
+                  disabled={orderPage === 1}
+                  className="p-2 border border-sand hover:bg-sand disabled:opacity-30"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setOrderPage(p)}
+                    className={`w-8 h-8 text-sm border transition ${
+                      p === orderPage ? "bg-bark text-cream border-bark" : "border-sand hover:bg-sand text-bark"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setOrderPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={orderPage === totalPages}
+                  className="p-2 border border-sand hover:bg-sand disabled:opacity-30"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -335,10 +440,13 @@ function ProductForm({ product, onSave, onClose }: { product: Product | null; on
         </div>
         <div className="space-y-3">
           <input placeholder="Нэр *" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={cls} />
-          <select value={form.category} onChange={(e) => { const cat = categories.find((c) => c.id === e.target.value)!; setForm({ ...form, category: cat.id as Product["category"], categoryName: cat.name }); }} className={cls}>
+          <select value={form.category} onChange={(e) => {
+            const cat = categories.find((c) => c.id === e.target.value)!;
+            setForm({ ...form, category: cat.id as Product["category"], categoryName: cat.name });
+          }} className={cls}>
             {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
-          <input type="number" placeholder="Үнэ ₮ *" value={form.price || ""} onChange={(e) => setForm({ ...form, price: +e.target.value })} className={cls} />
+          <input type="number" placeholder="Үнэ * (MNT)" value={form.price || ""} onChange={(e) => setForm({ ...form, price: +e.target.value })} className={cls} />
           <div>
             <p className="text-xs text-muted mb-2">Зургийн URL-үүд</p>
             {form.images.map((img, i) => (
@@ -349,14 +457,20 @@ function ProductForm({ product, onSave, onClose }: { product: Product | null; on
                   <input type="file" accept="image/*" className="hidden" disabled={uploading}
                     onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadImg(i, f); e.target.value = ""; }} />
                 </label>
-                {form.images.length > 1 && <button type="button" onClick={() => setForm({ ...form, images: form.images.filter((_, idx) => idx !== i) })} className="text-accent px-2"><X size={14} /></button>}
+                {form.images.length > 1 && (
+                  <button type="button" onClick={() => setForm({ ...form, images: form.images.filter((_, idx) => idx !== i) })} className="text-accent px-2">
+                    <X size={14} />
+                  </button>
+                )}
               </div>
             ))}
-            <button type="button" onClick={() => setForm({ ...form, images: [...form.images, ""] })} className="text-xs text-accent hover:underline">+ Зураг нэмэх</button>
+            <button type="button" onClick={() => setForm({ ...form, images: [...form.images, ""] })} className="text-xs text-accent hover:underline">
+              + Зураг нэмэх
+            </button>
           </div>
           <textarea placeholder="Тайлбар" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={`${cls} h-20`} />
           <input placeholder="Материал" value={form.material} onChange={(e) => setForm({ ...form, material: e.target.value })} className={cls} />
-          <input placeholder="Хэмжээ (Ж: 200 × 90 × 75 см)" value={form.dimensions} onChange={(e) => setForm({ ...form, dimensions: e.target.value })} className={cls} />
+          <input placeholder="Хэмжээ (Ж: 200 x 90 x 75 см)" value={form.dimensions} onChange={(e) => setForm({ ...form, dimensions: e.target.value })} className={cls} />
           <input type="number" placeholder="Үлдэгдэл" value={form.inStock} onChange={(e) => setForm({ ...form, inStock: +e.target.value })} className={cls} />
           <label className="flex items-center gap-2 text-sm text-bark">
             <input type="checkbox" checked={form.featured ?? false} onChange={(e) => setForm({ ...form, featured: e.target.checked })} />
@@ -365,7 +479,10 @@ function ProductForm({ product, onSave, onClose }: { product: Product | null; on
         </div>
         <div className="flex gap-3 mt-6">
           <button onClick={onClose} className="btn-outline flex-1">Болих</button>
-          <button onClick={() => { if (!form.name || !form.price || !form.images[0]) { alert("Нэр, үнэ, зураг оруулна уу."); return; } onSave(form); }} className="btn-primary flex-1">Хадгалах</button>
+          <button onClick={() => {
+            if (!form.name || !form.price || !form.images[0]) { alert("Нэр, үнэ, зураг оруулна уу."); return; }
+            onSave(form);
+          }} className="btn-primary flex-1">Хадгалах</button>
         </div>
       </div>
     </div>
@@ -377,19 +494,29 @@ function OrderModal({ order, onClose }: { order: DBOrder; onClose: () => void })
     <div className="fixed inset-0 bg-charcoal/60 flex items-center justify-center p-6 z-50" onClick={onClose}>
       <div className="bg-cream max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-between mb-6">
-          <div><p className="text-xs text-muted uppercase tracking-wider">Захиалга</p><h2 className="font-serif text-3xl text-bark">#{order.id}</h2></div>
+          <div>
+            <p className="text-xs text-muted uppercase tracking-wider">Захиалга</p>
+            <h2 className="font-serif text-3xl text-bark">#{order.id}</h2>
+          </div>
           <button onClick={onClose}><X size={20} /></button>
         </div>
         <div className="grid grid-cols-2 gap-6 mb-6 text-sm">
-          <div><h3 className="font-serif text-lg text-bark mb-2">Үйлчлүүлэгч</h3>
-            <p className="text-bark">{order.customer_name}</p><p className="text-muted">{order.customer_phone}</p><p className="text-muted">{order.customer_email}</p>
+          <div>
+            <h3 className="font-serif text-lg text-bark mb-2">Үйлчлүүлэгч</h3>
+            <p className="text-bark">{order.customer_name}</p>
+            <p className="text-muted">{order.customer_phone}</p>
+            <p className="text-muted">{order.customer_email}</p>
           </div>
-          <div><h3 className="font-serif text-lg text-bark mb-2">Хүргэлт</h3>
-            <p className="text-bark">{order.district} дүүрэг</p><p className="text-muted">{order.address}</p>
+          <div>
+            <h3 className="font-serif text-lg text-bark mb-2">Хүргэлт</h3>
+            <p className="text-bark">{order.district} дүүрэг</p>
+            <p className="text-muted">{order.address}</p>
             {order.note && <p className="text-muted text-xs mt-1">Тайлбар: {order.note}</p>}
           </div>
         </div>
-        <p className="text-sm text-muted mb-4">Төлбөр: <strong className="text-bark">{order.payment_method === "qpay" ? "QPay" : "Бэлэн мөнгө"}</strong></p>
+        <p className="text-sm text-muted mb-4">
+          Төлбөр: <strong className="text-bark">{order.payment_method === "qpay" ? "QPay" : "Бэлэн мөнгө"}</strong>
+        </p>
         <h3 className="font-serif text-lg text-bark mb-3">Бүтээгдэхүүн</h3>
         <div className="space-y-3 mb-6">
           {order.items.map((item, idx) => (
@@ -397,16 +524,26 @@ function OrderModal({ order, onClose }: { order: DBOrder; onClose: () => void })
               <div className="w-12 h-12 bg-sand flex-shrink-0">
                 {item.product?.images?.[0] && <img src={item.product.images[0]} alt="" className="w-full h-full object-cover" />}
               </div>
-              <div className="flex-1"><p className="text-bark">{item.product?.name ?? "—"}</p><p className="text-muted text-xs">{item.qty} × {formatPrice(item.product?.price ?? 0)}</p></div>
+              <div className="flex-1">
+                <p className="text-bark">{item.product?.name ?? "—"}</p>
+                <p className="text-muted text-xs">{item.qty} x {formatPrice(item.product?.price ?? 0)}</p>
+              </div>
               <p className="text-bark">{formatPrice((item.product?.price ?? 0) * item.qty)}</p>
             </div>
           ))}
         </div>
         <div className="space-y-1 text-sm border-t border-sand pt-4">
-          <div className="flex justify-between"><span className="text-muted">Дэд дүн</span><span>{formatPrice(order.subtotal)}</span></div>
-          <div className="flex justify-between"><span className="text-muted">Хүргэлт</span><span>{order.shipping === 0 ? "Үнэгүй" : formatPrice(order.shipping)}</span></div>
+          <div className="flex justify-between">
+            <span className="text-muted">Дэд дүн</span>
+            <span>{formatPrice(order.subtotal)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted">Хүргэлт</span>
+            <span>{order.shipping === 0 ? "Үнэгүй" : formatPrice(order.shipping)}</span>
+          </div>
           <div className="flex justify-between font-medium text-lg pt-2 border-t border-sand mt-2">
-            <span className="text-bark">Нийт</span><span className="text-bark">{formatPrice(order.total)}</span>
+            <span className="text-bark">Нийт</span>
+            <span className="text-bark">{formatPrice(order.total)}</span>
           </div>
         </div>
       </div>

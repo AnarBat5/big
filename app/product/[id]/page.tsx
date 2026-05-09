@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Image from "next/image";
 import { Minus, Plus, ShoppingBag, Truck, ShieldCheck } from "lucide-react";
 import { formatPrice } from "@/lib/products";
 import { useProducts } from "@/lib/store/products";
@@ -13,6 +14,8 @@ export default function ProductPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const products = useProducts((s) => s.products);
+  const loading = useProducts((s) => s.loading);
+  const fetched = useProducts((s) => s.fetched);
   const product = products.find((p) => p.id === id);
   const add = useCart((s) => s.add);
   const openDrawer = useCart((s) => s.openDrawer);
@@ -20,6 +23,21 @@ export default function ProductPage() {
 
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
+
+  if (loading || !fetched) {
+    return (
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="grid md:grid-cols-2 gap-12 animate-pulse">
+          <div className="aspect-square bg-sand" />
+          <div className="space-y-4 pt-8">
+            <div className="h-3 bg-sand w-1/4" />
+            <div className="h-10 bg-sand w-3/4" />
+            <div className="h-8 bg-sand w-1/3" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -50,11 +68,14 @@ export default function ProductPage() {
 
       <div className="grid md:grid-cols-2 gap-12 mb-20">
         <div>
-          <div className="aspect-square bg-sand overflow-hidden mb-4">
-            <img
+          <div className="aspect-square bg-sand overflow-hidden mb-4 relative">
+            <Image
               src={product.images[activeImg] || PLACEHOLDER_IMAGE}
               alt={product.name}
-              className="w-full h-full object-cover"
+              fill
+              sizes="(max-width: 768px) 100vw, 50vw"
+              className="object-cover"
+              priority
             />
           </div>
           {product.images.length > 1 && (
@@ -63,11 +84,11 @@ export default function ProductPage() {
                 <button
                   key={i}
                   onClick={() => setActiveImg(i)}
-                  className={`aspect-square bg-sand overflow-hidden border-2 transition ${
+                  className={`aspect-square bg-sand overflow-hidden border-2 transition relative ${
                     activeImg === i ? "border-bark" : "border-transparent hover:border-sand"
                   }`}
                 >
-                  <img src={img} alt="" className="w-full h-full object-cover" />
+                  <Image src={img || PLACEHOLDER_IMAGE} alt="" fill sizes="120px" className="object-cover" />
                 </button>
               ))}
             </div>
@@ -78,7 +99,6 @@ export default function ProductPage() {
           <p className="text-xs tracking-[0.3em] uppercase text-muted mb-3">{product.categoryName}</p>
           <h1 className="font-serif text-5xl text-bark mb-4">{product.name}</h1>
           <p className="text-3xl text-bark mb-8">{formatPrice(product.price)}</p>
-
           <p className="text-bark/80 leading-relaxed mb-8">{product.description}</p>
 
           <div className="border-y border-sand py-6 mb-8 space-y-3">

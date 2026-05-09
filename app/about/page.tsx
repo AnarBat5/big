@@ -1,4 +1,15 @@
+import type { Metadata } from "next";
+import Image from "next/image";
 import { Award, Users, Globe, Heart } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Бидний тухай",
+  description: "Baganuur Investment Group — 2014 оноос хойш Монгол гэр бүлд чанартай тавилга нийлүүлж ирсэн тэргүүлэх брэнд.",
+  openGraph: {
+    title: "Бидний тухай | Baganuur Investment Group",
+    description: "12+ жилийн туршлага, 15,000+ үйлчлүүлэгч, 21 аймагт хүргэлттэй.",
+  },
+};
 
 export default function AboutPage() {
   const stats = [
@@ -11,10 +22,13 @@ export default function AboutPage() {
   return (
     <>
       <section className="relative h-[60vh] flex items-center overflow-hidden">
-        <img
+        <Image
           src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1600"
           alt=""
-          className="absolute inset-0 w-full h-full object-cover"
+          fill
+          sizes="100vw"
+          className="object-cover"
+          priority
         />
         <div className="absolute inset-0 bg-charcoal/60" />
         <div className="relative max-w-7xl mx-auto px-6 text-cream">
@@ -62,9 +76,9 @@ export default function AboutPage() {
         </div>
         <div className="grid md:grid-cols-3 gap-8">
           {[
-            { title: "Чанар", desc: "Эх материалаас эхлээд эцсийн өнгөлгөө хүртэл нягт нямбай хяналт." },
-            { title: "Тогтвортой байдал", desc: "Байгальд ээлтэй, нөхөн сэргээгддэг материал ашигладаг." },
-            { title: "Гар хийц", desc: "Машины бус, урчуудын гарын хүчээр бүтсэн өвөрмөц загвар." },
+            { title: "Чанар", desc: "Эх материалаас эхлээд эцсийн онгологоо хурэтэл нягт нямбай хяналт." },
+            { title: "Тогтвортой байдал", desc: "Байгальд ээлтэй, нохон сэргээгддэг материал ашигладаг." },
+            { title: "Гар хийц", desc: "Машины бус, урчуудын гарын хучээр бутсэн овормоц загвар." },
           ].map((v) => (
             <div key={v.title} className="border-t border-sand pt-6">
               <h3 className="font-serif text-2xl text-bark mb-3">{v.title}</h3>

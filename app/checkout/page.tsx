@@ -134,7 +134,7 @@ export default function CheckoutPage() {
         <p className="text-muted mb-8">Манай ажилтан тантай удахгүй холбогдох болно.</p>
         <div className="flex gap-4 justify-center">
           <Link href="/" className="btn-outline">Нүүр хуудас</Link>
-          <Link href="/" className="btn-primary">Дэлгүүр үргэлжлүүлэх</Link>
+          <Link href="/shop" className="btn-primary">Дэлгүүр үргэлжлүүлэх</Link>
         </div>
       </div>
     );

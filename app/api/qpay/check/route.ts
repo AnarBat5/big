@@ -2,14 +2,14 @@ import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 
 async function getQPayToken(): Promise<string> {
+  const user = process.env.QPAY_USERNAME;
+  const pass = process.env.QPAY_PASSWORD;
+  if (!user || !pass) throw new Error('QPay credentials not configured');
+
   const res = await fetch('https://merchant.qpay.mn/v2/auth/token', {
     method: 'POST',
     headers: {
-      Authorization:
-        'Basic ' +
-        Buffer.from(
-          `${process.env.QPAY_USERNAME}:${process.env.QPAY_PASSWORD}`
-        ).toString('base64'),
+      Authorization: 'Basic ' + Buffer.from(`${user}:${pass}`).toString('base64'),
     },
     cache: 'no-store',
   });
@@ -19,9 +19,12 @@ async function getQPayToken(): Promise<string> {
 }
 
 export async function POST(request: Request) {
-  const { invoiceId, orderId } = await request.json();
+  const body = await request.json().catch(() => null);
+  if (!body) return NextResponse.json({ error: 'Invalid body' }, { status: 400 });
+
+  const { invoiceId, orderId } = body;
   if (!invoiceId || !orderId) {
-    return NextResponse.json({ error: 'Missing params' }, { status: 400 });
+    return NextResponse.json({ error: 'Missing invoiceId or orderId' }, { status: 400 });
   }
 
   try {
@@ -42,15 +45,16 @@ export async function POST(request: Request) {
 
     if (paid) {
       const admin = createAdminClient();
-      await admin
+      const { error } = await admin
         .from('orders')
         .update({ status: 'Төлбөр хийгдсэн' })
         .eq('id', orderId);
+      if (error) console.error('Order status update failed:', error.message);
     }
 
     return NextResponse.json({ paid, amount: data.paid_amount ?? 0 });
   } catch (err) {
-    console.error('QPay check error:', err);
+    console.error('QPay check error:', err instanceof Error ? err.message : err);
     return NextResponse.json({ paid: false });
   }
 }

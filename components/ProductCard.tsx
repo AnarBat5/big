@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import { ShoppingBag } from "lucide-react";
 import { Product, formatPrice } from "@/lib/products";
 import { useCart } from "@/lib/store/cart";
@@ -24,10 +25,12 @@ export default function ProductCard({ product }: { product: Product }) {
   return (
     <Link href={`/product/${product.id}`} className="group block">
       <div className="aspect-[4/5] bg-sand overflow-hidden mb-4 relative">
-        <img
+        <Image
           src={product.images[0] || PLACEHOLDER_IMAGE}
           alt={product.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition duration-700"
+          fill
+          sizes="(max-width: 768px) 50vw, 25vw"
+          className="object-cover group-hover:scale-105 transition duration-700"
         />
         {outOfStock && (
           <div className="absolute inset-0 bg-charcoal/50 flex items-center justify-center">

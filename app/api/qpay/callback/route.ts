@@ -10,19 +10,20 @@ export async function POST(request: Request) {
 
   const admin = createAdminClient();
 
-  const { error } = await admin
+  const { error: updateErr } = await admin
     .from('orders')
     .update({ status: 'Төлбөр хийгдсэн' })
     .eq('id', orderId);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 });
 
-  // Fire email confirmation
-  const { data: order } = await admin
+  const { data: order, error: fetchErr } = await admin
     .from('orders')
     .select('*')
     .eq('id', orderId)
-    .single();
+    .maybeSingle();
+
+  if (fetchErr) console.error('Failed to fetch order after callback:', fetchErr.message);
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
   if (order && appUrl) {
