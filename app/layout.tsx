@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
@@ -9,15 +9,17 @@ import ProductsInit from "@/components/ProductsInit";
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin", "cyrillic"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "600"],
   variable: "--font-cormorant",
   display: "swap",
+  preload: true,
 });
 const inter = Inter({
   subsets: ["latin", "cyrillic"],
-  weight: ["300", "400", "500", "600"],
+  weight: ["400", "500"],
   variable: "--font-inter",
   display: "swap",
+  preload: true,
 });
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://baganuurig.mn";
@@ -45,6 +47,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
 };
 
+export const viewport: Viewport = {
+  themeColor: "#F5F0E8",
+  colorScheme: "light",
+};
+
 const orgJsonLd = {
   "@context": "https://schema.org",
   "@type": "FurnitureStore",
@@ -68,7 +75,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <script
           type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
         />
         <ProductsInit />

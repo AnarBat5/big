@@ -19,8 +19,6 @@ function toFrontend(p: Record<string, unknown>): Product {
   };
 }
 
-// Cached query — Vercel will reuse this across requests for `revalidate` seconds.
-// `revalidateTag('products')` from admin actions invalidates instantly.
 export const getProducts = unstable_cache(
   async (): Promise<Product[]> => {
     try {

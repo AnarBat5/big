@@ -7,7 +7,10 @@ export default function ProductsInit() {
   const fetched = useProducts((s) => s.fetched);
 
   useEffect(() => {
-    if (!fetched) fetchProducts();
+    if (fetched) return;
+    // Defer fetch until after first paint so it never blocks rendering
+    const id = setTimeout(() => fetchProducts(), 300);
+    return () => clearTimeout(id);
   }, [fetched, fetchProducts]);
 
   return null;

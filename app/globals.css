@@ -2,45 +2,141 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { color-scheme: light; }
+:root {
+  color-scheme: light only;
+  --bark: #2D2424;
+  --cream: #F8F6F3;
+  --sand: #E5DDD0;
+  --accent: #B8935A;
+  --charcoal: #1A1515;
+
+  --glass-bg: rgba(255,255,255,0.7);
+  --glass-border: rgba(255,255,255,0.4);
+}
+
+html, body { color-scheme: light only; forced-color-adjust: none; }
+@media (prefers-color-scheme: dark) {
+  html, body { background: var(--cream) !important; color: var(--bark) !important; color-scheme: light only; }
+}
+
+* { -webkit-tap-highlight-color: transparent; }
+
+html { scroll-behavior: smooth; background: var(--cream); }
 
 body {
-  background: #F5F0E8;
-  color: #1F1B16;
+  background: var(--cream) !important;
+  color: var(--bark);
   font-family: var(--font-inter), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-h1, h2, h3, h4 { font-family: var(--font-cormorant), Georgia, serif; }
-
-.btn-primary {
-  @apply bg-bark text-cream px-8 py-3 hover:bg-accent transition-colors tracking-wider text-sm uppercase
-         disabled:opacity-50 disabled:cursor-not-allowed
-         focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-cream;
-}
-.btn-outline {
-  @apply border border-bark text-bark px-8 py-3 hover:bg-bark hover:text-cream transition-colors tracking-wider text-sm uppercase
-         focus:outline-none focus-visible:ring-2 focus-visible:ring-bark focus-visible:ring-offset-2 focus-visible:ring-offset-cream;
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
-/* Better tap feedback on mobile */
+/* ── Buttons ──────────────────────────────────────────────────── */
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-7 py-3 rounded-lg
+           bg-bark text-cream font-medium tracking-wide transition-all duration-300
+           disabled:opacity-50 disabled:cursor-not-allowed
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-cream;
+    box-shadow: 0 8px 24px -8px rgba(45,36,36,0.12);
+  }
+  .btn-primary:hover { transform: translateY(-2px) scale(1.01); box-shadow: 0 20px 40px -10px rgba(45,36,36,0.18); }
+  .btn-primary:active { transform: translateY(0) scale(0.99); }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 px-7 py-3 rounded-lg
+           border-2 border-bark text-bark font-medium tracking-wide
+           transition-all duration-300 hover:bg-bark hover:text-cream
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-bark focus-visible:ring-offset-2 focus-visible:ring-offset-cream;
+  }
+  .btn-outline:hover { transform: translateY(-2px) scale(1.01); }
+
+  .btn-accent {
+    @apply inline-flex items-center justify-center gap-2 px-7 py-3 rounded-lg
+           bg-accent text-bark font-semibold tracking-wide transition-all duration-300;
+    box-shadow: 0 8px 24px -8px rgba(45,36,36,0.12);
+  }
+  .btn-accent:hover { transform: translateY(-2px) scale(1.01); box-shadow: 0 20px 40px -10px rgba(45,36,36,0.18); }
+
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-lg
+           text-bark/70 hover:text-bark hover:bg-sand/40 transition-colors;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl transition-shadow duration-300;
+    box-shadow: 0 8px 24px -8px rgba(45,36,36,0.12);
+  }
+  .card:hover { box-shadow: 0 20px 40px -10px rgba(45,36,36,0.18); }
+  .card-soft {
+    @apply bg-white rounded-2xl;
+    box-shadow: 0 4px 12px rgba(45,36,36,0.08);
+  }
+
+  .chip {
+    @apply inline-flex items-center px-4 py-2 rounded-full text-sm transition-all duration-200;
+  }
+  .chip-default { @apply bg-sand text-bark hover:bg-bark hover:text-cream; }
+  .chip-active  { @apply bg-bark text-cream; box-shadow: 0 4px 12px rgba(45,36,36,0.08); }
+
+  .input {
+    @apply w-full px-4 py-3.5 rounded-xl bg-white border-2 border-transparent
+           focus:border-accent outline-none transition-colors text-bark
+           placeholder:text-bark/40;
+  }
+  .input-soft {
+    @apply w-full px-4 py-3 rounded-xl bg-cream border-2 border-transparent
+           focus:border-accent outline-none transition-colors text-bark
+           placeholder:text-bark/40;
+  }
+}
+
+/* ── Glass surfaces ───────────────────────────────────────────── */
+
+.glass {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+          backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-nav {
+  background: rgba(248,246,243,0.78);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+          backdrop-filter: blur(16px) saturate(140%);
+  border-bottom: 1px solid rgba(45,36,36,0.06);
+}
+
+/* ── Reveal-on-scroll ─────────────────────────────────────────── */
+
+.reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.8s cubic-bezier(0.22,1,0.36,1), transform 0.8s cubic-bezier(0.22,1,0.36,1); }
+.reveal.is-visible { opacity: 1; transform: translateY(0); }
+
+/* ── Animations utilities (delays) ────────────────────────────── */
+
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+
+/* ── Selection ────────────────────────────────────────────────── */
+
+::selection { background-color: var(--accent); color: var(--cream); }
+
+input, select, textarea { font-family: inherit; }
+input:focus, select:focus, textarea:focus { outline: none; }
+
 @media (hover: none) {
-  .btn-primary:active, .btn-outline:active { opacity: 0.9; }
+  .btn-primary:active, .btn-outline:active, .btn-accent:active { opacity: 0.92; }
 }
-
-/* Smooth scroll for anchor links */
-html { scroll-behavior: smooth; }
-
-/* Prevent layout shift from Image components */
-img { content-visibility: auto; }
-
-@keyframes slide-in {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-.animate-slide-in { animation: slide-in 0.3s ease-out; }
-.animate-fade-in { animation: fade-in 0.2s ease-out; }

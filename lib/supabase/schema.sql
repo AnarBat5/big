@@ -123,3 +123,85 @@ CREATE POLICY "Admin delete product images" ON storage.objects
 DROP POLICY IF EXISTS "Public read product images" ON storage.objects;
 CREATE POLICY "Public read product images" ON storage.objects
   FOR SELECT TO anon, authenticated USING (bucket_id = 'products');
+
+
+-- =============================================================
+-- USER ACCOUNTS (added in v2)
+-- Run this on top of the original schema.
+-- =============================================================
+
+-- Link orders to a user (nullable so legacy guest orders still work)
+alter table orders
+  add column if not exists user_id uuid references auth.users(id) on delete set null;
+
+create index if not exists orders_user_id_idx on orders(user_id);
+
+-- Profiles: 1:1 with auth.users, holds extra info (phone, name, prefs)
+create table if not exists profiles (
+  id              uuid primary key references auth.users(id) on delete cascade,
+  full_name       text default '',
+  phone           text default '',
+  email_marketing boolean default true,
+  created_at      timestamptz default now(),
+  updated_at      timestamptz default now()
+);
+
+alter table profiles enable row level security;
+
+drop policy if exists "profiles self read"   on profiles;
+drop policy if exists "profiles self update" on profiles;
+drop policy if exists "profiles self insert" on profiles;
+create policy "profiles self read"   on profiles for select using (auth.uid() = id);
+create policy "profiles self update" on profiles for update using (auth.uid() = id);
+create policy "profiles self insert" on profiles for insert with check (auth.uid() = id);
+
+-- Auto-create a profile row whenever a new auth user signs up
+create or replace function public.handle_new_user()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  insert into public.profiles (id, full_name, phone)
+  values (
+    new.id,
+    coalesce(new.raw_user_meta_data->>'full_name', ''),
+    coalesce(new.raw_user_meta_data->>'phone', '')
+  )
+  on conflict (id) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+-- Saved shipping addresses
+create table if not exists addresses (
+  id          bigserial primary key,
+  user_id     uuid not null references auth.users(id) on delete cascade,
+  label       text default '',
+  recipient   text not null,
+  phone       text not null,
+  district    text not null,
+  detail      text not null,
+  is_default  boolean default false,
+  created_at  timestamptz default now()
+);
+create index if not exists addresses_user_idx on addresses(user_id);
+
+alter table addresses enable row level security;
+drop policy if exists "addresses self all" on addresses;
+create policy "addresses self all" on addresses for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- Wishlist items
+create table if not exists wishlist_items (
+  user_id     uuid not null references auth.users(id) on delete cascade,
+  product_id  text not null references products(id) on delete cascade,
+  created_at  timestamptz default now(),
+  primary key (user_id, product_id)
+);
+create index if not exists wishlist_user_idx on wishlist_items(user_id);
+
+alter table wishlist_items enable row level security;
+drop policy if exists "wishlist self all" on wishlist_items;
+create policy "wishlist self all" on wishlist_items for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
